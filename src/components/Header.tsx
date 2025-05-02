@@ -1,100 +1,77 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import UserInventory from '@/components/UserInventory';
+import { CaseItem } from '@/data/types';
 import Icon from '@/components/ui/icon';
-import { Link } from 'react-router-dom';
 
 const Header: React.FC = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [inventoryItems, setInventoryItems] = useState<CaseItem[]>([]);
+  const navigate = useNavigate();
+  
+  // Загрузка инвентаря пользователя
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const storedItems = localStorage.getItem('userInventory');
+      if (storedItems) {
+        setInventoryItems(JSON.parse(storedItems));
+      }
+    };
+    
+    // Первичная загрузка
+    handleStorageChange();
+    
+    // Слушаем изменения в localStorage
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Устанавливаем интервал для проверки изменений
+    const interval = setInterval(handleStorageChange, 1000);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
+  
+  const handleUpgradeClick = (item: CaseItem) => {
+    navigate('/upgrade');
+  };
   
   return (
-    <header className="bg-card border-b border-border py-4">
-      <div className="container mx-auto px-4">
+    <header className="bg-card shadow-md">
+      <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center">
-              <span className="text-2xl font-extrabold text-white">
-                <span className="text-primary">Blog</span>Battle
-              </span>
-            </Link>
-            
-            <nav className="hidden md:flex items-center gap-6">
-              <Link to="/" className="text-white hover:text-primary transition-colors font-medium">
-                Все кейсы
-              </Link>
-              <Link to="/battles" className="text-white hover:text-primary transition-colors font-medium">
-                Сражения
-              </Link>
-              <Link to="/top" className="text-white hover:text-primary transition-colors font-medium">
-                Топ дропов
-              </Link>
-              <Link to="/faq" className="text-white hover:text-primary transition-colors font-medium">
-                FAQ
-              </Link>
-            </nav>
-          </div>
+          <Link to="/" className="text-2xl font-bold text-white flex items-center">
+            <Icon name="Box" className="mr-2 text-primary" size={24} />
+            ContentCase
+          </Link>
           
-          <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-3">
-              <Button variant="secondary" size="sm" className="rounded-full">
-                <Icon name="Bell" size={16} />
-              </Button>
-              
-              <Button variant="outline" size="sm" className="gap-2 rounded-full">
-                <span>0.00 $</span>
-                <Icon name="Plus" size={16} />
-              </Button>
-              
-              <Button className="rounded-full gap-2">
-                <Icon name="User" size={16} />
-                <span>Войти</span>
-              </Button>
-            </div>
+          <div className="flex items-center space-x-2">
+            <Button 
+              variant="ghost" 
+              className="text-muted-foreground hover:text-white hover:bg-muted"
+              onClick={() => navigate('/')}
+            >
+              <Icon name="ShoppingBag" size={20} className="mr-2" />
+              Кейсы
+            </Button>
             
             <Button 
               variant="ghost" 
-              size="sm" 
-              className="md:hidden"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-muted-foreground hover:text-white hover:bg-muted"
+              onClick={() => navigate('/upgrade')}
             >
-              <Icon name={isMenuOpen ? "X" : "Menu"} size={24} />
+              <Icon name="ArrowUp" size={20} className="mr-2" />
+              Апгрейды
             </Button>
+            
+            <UserInventory 
+              inventoryItems={inventoryItems}
+              onUpgradeClick={handleUpgradeClick}
+            />
           </div>
         </div>
-        
-        {isMenuOpen && (
-          <div className="md:hidden mt-4 bg-card rounded-lg p-4">
-            <nav className="flex flex-col gap-4">
-              <Link to="/" className="text-white hover:text-primary transition-colors font-medium">
-                Все кейсы
-              </Link>
-              <Link to="/battles" className="text-white hover:text-primary transition-colors font-medium">
-                Сражения
-              </Link>
-              <Link to="/top" className="text-white hover:text-primary transition-colors font-medium">
-                Топ дропов
-              </Link>
-              <Link to="/faq" className="text-white hover:text-primary transition-colors font-medium">
-                FAQ
-              </Link>
-              <div className="flex items-center gap-3 mt-2">
-                <Button variant="secondary" size="sm" className="rounded-full">
-                  <Icon name="Bell" size={16} />
-                </Button>
-                
-                <Button variant="outline" size="sm" className="gap-2 rounded-full">
-                  <span>0.00 $</span>
-                  <Icon name="Plus" size={16} />
-                </Button>
-                
-                <Button className="rounded-full gap-2">
-                  <Icon name="User" size={16} />
-                  <span>Войти</span>
-                </Button>
-              </div>
-            </nav>
-          </div>
-        )}
       </div>
     </header>
   );
