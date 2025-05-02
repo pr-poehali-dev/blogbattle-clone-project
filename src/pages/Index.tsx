@@ -7,34 +7,18 @@ import BattleBanner from '@/components/BattleBanner';
 import CaseFilter from '@/components/CaseFilter';
 import LiveDrops from '@/components/LiveDrops';
 import TopDrops from '@/components/TopDrops';
-import { cases } from '@/data/cases';
+import { useCases } from '@/data/hooks/useCases';
 
 const Index = () => {
   const [activeFilter, setActiveFilter] = useState('all');
+  const { getFilteredCases } = useCases();
   
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
   };
   
-  // Функция для фильтрации и сортировки кейсов
-  const getFilteredCases = () => {
-    let filteredCases = [...cases];
-    
-    switch(activeFilter) {
-      case 'popular':
-        // В реальном приложении здесь могла бы быть логика сортировки по популярности
-        return filteredCases;
-      case 'new':
-        // Имитируем сортировку по новизне (просто перемешиваем массив)
-        return filteredCases.reverse();
-      case 'price-asc':
-        return filteredCases.sort((a, b) => a.price - b.price);
-      case 'price-desc':
-        return filteredCases.sort((a, b) => b.price - a.price);
-      default:
-        return filteredCases;
-    }
-  };
+  // Получаем отфильтрованные кейсы используя наш кастомный хук
+  const filteredCases = getFilteredCases(activeFilter);
   
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -52,7 +36,7 @@ const Index = () => {
           />
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {getFilteredCases().map((caseItem) => (
+            {filteredCases.map((caseItem) => (
               <CaseCard
                 key={caseItem.id}
                 id={caseItem.id}
